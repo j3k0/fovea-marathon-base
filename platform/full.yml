@@ -1,0 +1,7 @@
+---
+- include: net.yml
+- include: mesos.yml
+- include: sysdig.yml
+- include: reboot.yml
+#- include: statsd.yml
+#- include: beacon.yml
