@@ -1,0 +1,20 @@
+---
+- hosts: mesos
+  become: true
+  roles:
+    - tinc
+    - docker
+
+- hosts: mesos-masters
+  become: true
+  vars:
+    mesos_version: "1.0"
+  roles:
+    - mesos-master
+
+- hosts: mesos-slaves
+  become: true
+  vars:
+    mesos_version: "1.0"
+  roles:
+    - mesos-slave

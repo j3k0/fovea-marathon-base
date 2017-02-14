@@ -1,0 +1,5 @@
+---
+git_dest: /tmp/reeceipt-www
+image_name: "reeceipt-www"
+commit_id: "1143ac744006e8f05c7f63eb29c6c625afd27950"
+reeceipt_www_image: "{{ git_dest }}/docker-images/{{ image_name }}"

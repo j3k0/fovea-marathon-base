@@ -1,0 +1,55 @@
+statsd:
+  image: "hopsoft/graphite-statsd"
+  ports:
+    - {{ tun0 }}:2080:80
+    - {{ tun0 }}:2003:2003
+    - {{ tun0 }}:2004:2004
+    - {{ tun0 }}:2023:2023
+    - {{ tun0 }}:2024:2024
+    - {{ tun0 }}:8125:8125/udp
+    - {{ tun0 }}:8126:8126
+  volumes:
+    - /usr/local/{{ cluster_name }}/platform/statsd/storage:/opt/graphite/storage
+  restart: always
+
+{% for host in groups['mesos-masters'] %}
+
+mesosmaster{{ host }}:
+  image: jeko/mesos-statsd
+  environment:
+    - "MESOS_URL=http://{{ hostvars[host].tun0 }}:5050"
+    - "STATSD_URL=statsd://statsd:8125"
+    - "METRICS_PREFIX=mesos.master.{{ host }}"
+    - "REFRESH_INTERVAL=60"
+  links:
+    - statsd
+  restart: always
+
+{% endfor %}
+
+{% for host in groups['mesos-slaves'] %}
+
+mesosslave{{ host }}:
+  image: jeko/mesos-statsd
+  environment:
+    - "MESOS_URL=http://{{ hostvars[host].tun0 }}:5051"
+    - "STATSD_URL=statsd://statsd:8125"
+    - "METRICS_PREFIX=mesos.slave.{{ host }}"
+    - "REFRESH_INTERVAL=60"
+  links:
+    - statsd
+  restart: always
+
+haproxy{{ host }}:
+  image: jeko/haproxy-statsd:v1.2.3
+  environment:
+    - "STATSD_HOST=statsd"
+    - "STATSD_PORT=8125"
+    - "STATSD_NAMESPACE=marathonlb.{{ host }}"
+    - "HAPROXY_HOST=http://{{ hostvars[host].tun0 }}:9090/haproxy?stats;csv"
+    - "INTERVAL=10"
+  links:
+    - statsd
+  restart: always
+
+{% endfor %}

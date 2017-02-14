@@ -1,0 +1,7 @@
+---
+parcolab_git_dest: /tmp/parcolab
+parcolab_git_version: "3111b6b"
+parcolab_wordpress_image_name: "parcolab-wordpress"
+parcolab_wordpress_image: "{{ parcolab_git_dest }}/docker-images/{{ parcolab_wordpress_image_name }}"
+parcolab_node_image_name: "parcolab-node"
+parcolab_node_image: "{{ parcolab_git_dest }}/docker-images/{{ parcolab_node_image_name }}"

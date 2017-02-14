@@ -1,0 +1,89 @@
+---
+- hosts: mesos-slaves
+  gather_facts: no
+  vars:
+    app_name: platform/marathon-lb
+    ssl_certs: "/ssl/fovea.cc"
+
+  tasks:
+    - name: Create templates storage
+      file:
+        path: "/usr/local/{{ cluster_name }}/{{ app_name }}-ganomede/templates"
+        state: directory
+        mode: 0755
+
+    - name: Copy templates
+      template:
+        src: marathon-lb-ganomede/{{ item }}
+        dest: "/usr/local/{{ cluster_name }}/{{ app_name }}-ganomede/templates/{{ item }}"
+        mode: 0440
+      with_items: [ "HAPROXY_HTTP_FRONTEND_HEAD", "HAPROXY_HTTPS_FRONTEND_HEAD" ]
+
+    - name: Create certificates storage
+      file:
+        path: "/usr/local/{{ cluster_name }}/{{ app_name }}-ganomede/ssl"
+        state: directory
+        mode: 0755
+
+    - name: Copy certificates
+      copy:
+        src: "..{{ ssl_certs }}"
+        dest: "/usr/local/{{ cluster_name }}/{{ app_name }}-ganomede{{ ssl_certs }}"
+        mode: 0644
+
+- hosts: marathon-api-server
+  gather_facts: no
+
+  vars:
+    app_name: platform/marathon-lb
+    app_port: 9090
+    ssl_certs: "/ssl/fovea.cc"
+
+  roles:
+  - role: topface.marathon_app
+    tags:
+      - platform
+      - haproxy
+    marathon_url: http://{{ inventory_hostname }}:8080
+    marathon_wait_for_deployment: False
+    marathon_app:
+      id: /{{ app_name }}
+      cmd: >
+        /marathon-lb/run sse
+        --marathon "http://{{ groups['marathon-api-server'][0] }}:8080"
+        --group external
+        --health-check
+        --ssl-certs "{{ ssl_certs }}"
+      container:
+        type: DOCKER
+        docker:
+          image: mesosphere/marathon-lb:v1.1.2
+          network: HOST
+        volumes:
+          - containerPath: /ssl
+            hostPath: "/usr/local/{{ cluster_name }}/{{ app_name }}-ganomede/ssl"
+            mode: RO
+          - containerPath: /marathon-lb/templates
+            hostPath: "/usr/local/{{ cluster_name }}/{{ app_name }}-ganomede/templates"
+            mode: RO
+      env:
+        HAPROXY_HTTP_FRONTEND_HEAD: "frontend marathon_http_in\\n bind *:2080\\n mode http"
+      instances: 3
+      cpus: 0.2
+      mem: 128
+      ports:
+        - "{{ app_port }}"
+      #healthChecks:
+      #  - protocol: HTTP
+      #    path: /_haproxy_health_check
+      #    portIndex: 1
+      #    gracePeriodSeconds: 15
+      #    maxConsecutiveFailures: 3
+      #    intervalSeconds: 5
+      #    timeoutSeconds: 5
+      constraints:
+        - [ "hostname", "UNIQUE" ]
+
+      upgradeStrategy:
+        minimumHealthCapacity: 0
+        maximumOverCapacity: 0

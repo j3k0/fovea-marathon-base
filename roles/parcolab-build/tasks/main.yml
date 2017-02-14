@@ -1,0 +1,41 @@
+---
+- name: Retrieve the git
+  git:
+    repo: git@github.com:j3k0/parcolab.git
+    version: "{{ parcolab_git_version }}"
+    dest: "{{ parcolab_git_dest }}"
+
+- name: Create image storage
+  file:
+    path: "{{ parcolab_git_dest }}/docker-images"
+    state: directory
+    mode: 0755
+
+# Prepare wordpress image
+
+- name: Check or build wordpres image
+  docker_image:
+    path: "{{ parcolab_git_dest }}/wordpress"
+    name: "{{ parcolab_wordpress_image_name }}"
+    tag: "{{ parcolab_git_version }}"
+    state: present
+
+- name: Save the image
+  command: docker save -o {{ parcolab_wordpress_image }}.{{ parcolab_git_version }} {{ parcolab_wordpress_image_name }}:{{ parcolab_git_version }}
+  args:
+    creates: "{{ parcolab_wordpress_image }}.{{ parcolab_git_version }}"
+
+# Prepare node image
+
+- name: Check or build node image
+  docker_image:
+    path: "{{ parcolab_git_dest }}"
+    name: "{{ parcolab_node_image_name }}"
+    tag: "{{ parcolab_git_version }}"
+    state: present
+
+- name: Save the image
+  command: docker save -o {{ parcolab_node_image }}.{{ parcolab_git_version }} {{ parcolab_node_image_name }}:{{ parcolab_git_version }}
+  args:
+    creates: "{{ parcolab_node_image }}.{{ parcolab_git_version }}"
+

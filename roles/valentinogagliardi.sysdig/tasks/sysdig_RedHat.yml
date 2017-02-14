@@ -1,0 +1,31 @@
+---
+- name: Install Kernel Devel for RedHat OS family
+  yum: name=kernel-devel-{{ ansible_kernel }} 
+       state=latest
+  when: ansible_pkg_mgr == "yum"
+
+- name: Install Kernel Devel for RedHat OS family (Fedora)
+  dnf: name=kernel-devel-{{ ansible_kernel }} 
+       state=latest
+  when: ansible_pkg_mgr == "dnf"
+
+- name: Get Sysdig Key for RedHat OS family
+  rpm_key: key={{ sysdig_repokey }} 
+           state=present
+
+- name: Get Sysdig repo for RedHat OS family
+  get_url: url={{ sysdig_url }} 
+           dest={{ sysdig_repo }} 
+           owner=root 
+           group=root 
+           mode=0644
+
+- name: Install Sysdig for RedHat OS family
+  yum: name={{ sysdig_package }} 
+       state=latest
+  when: ansible_pkg_mgr == "yum"
+
+- name: Install Sysdig for RedHat OS family (Fedora)
+  dnf: name={{ sysdig_package }} 
+       state=latest
+  when: ansible_pkg_mgr == "dnf"

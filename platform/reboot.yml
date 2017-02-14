@@ -1,0 +1,18 @@
+---
+- hosts: mesos
+  gather_facts: no
+  tasks:
+  - name: Install rc.local
+    template:
+      src: reboot/rc.local
+      dest: /etc/rc.local
+      mode: 0755
+
+  - name: Install slavedown
+    template:
+      src: reboot/slavedown
+      dest: /etc/{{ item }}/K01slavedown
+      mode: 0755
+    with_items:
+      - rc0.d
+      - rc6.d

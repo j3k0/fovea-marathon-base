@@ -1,0 +1,5 @@
+---
+git_dest: /tmp/reeceipt-validator
+image_name: "reeceipt-validator"
+commit_id: "5f7f033"
+reeceipt_validator_image: "{{ git_dest }}/docker-images/{{ image_name }}"

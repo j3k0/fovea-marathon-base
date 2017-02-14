@@ -1,0 +1,5 @@
+---
+git_dest: /tmp/contrass-backend
+image_name: "contrass-push"
+commit_id: "3111b6b"
+contrass_push_image: "{{ git_dest }}/docker-images/{{ image_name }}"

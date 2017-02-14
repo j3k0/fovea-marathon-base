@@ -1,0 +1,24 @@
+---
+- name: Retrieve the git
+  git:
+    repo: git@github.com:j3k0/reeceipt-validator.git
+    version: "{{ commit_id }}"
+    dest: "{{ git_dest }}"
+
+- name: Create image storage
+  file:
+    path: "{{ git_dest }}/docker-images"
+    state: directory
+    mode: 0755
+
+- name: Check or build image
+  docker_image:
+    path: "{{ git_dest }}"
+    name: "{{ image_name }}"
+    tag: "{{ commit_id }}"
+    state: present
+
+- name: Save the image
+  command: docker save -o {{ reeceipt_validator_image }}.{{ commit_id }} {{ image_name }}:{{ commit_id }}
+  args:
+    creates: "{{ reeceipt_validator_image }}.{{ commit_id }}"

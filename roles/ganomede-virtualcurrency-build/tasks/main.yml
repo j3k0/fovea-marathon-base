@@ -1,0 +1,27 @@
+---
+- name: Retrieve the git
+  git:
+    repo: git@github.com:j3k0/ganomede-virtualcurrency.git
+    version: "{{ ganomede_virtualcurrency_git_version }}"
+    dest: "{{ ganomede_virtualcurrency_git_dest }}"
+
+- name: Create image storage
+  file:
+    path: "{{ ganomede_virtualcurrency_git_dest }}/docker-images"
+    state: directory
+    mode: 0755
+
+# Prepare image
+
+- name: Check or build image
+  docker_image:
+    path: "{{ ganomede_virtualcurrency_git_dest }}"
+    name: "{{ ganomede_virtualcurrency_image_name }}"
+    tag: "{{ ganomede_virtualcurrency_git_version }}"
+    state: present
+
+- name: Save the image
+  command: docker save -o {{ ganomede_virtualcurrency_image }}.{{ ganomede_virtualcurrency_git_version }} {{ ganomede_virtualcurrency_image_name }}:{{ ganomede_virtualcurrency_git_version }}
+  args:
+    creates: "{{ ganomede_virtualcurrency_image }}.{{ ganomede_virtualcurrency_git_version }}"
+

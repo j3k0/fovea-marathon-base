@@ -1,0 +1,5 @@
+---
+ganomede_challenges_git_dest: /tmp/ganomede-challenges
+ganomede_challenges_git_version: "v0.9.0"
+ganomede_challenges_image_name: "ganomede-challenges"
+ganomede_challenges_image: "{{ ganomede_challenges_git_dest }}/docker-images/{{ ganomede_challenges_image_name }}"

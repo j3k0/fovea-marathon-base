@@ -1,0 +1,36 @@
+---
+- block:
+
+  - name: Create mesos-ggsp/
+    file: path=mesos-ggsp state=directory mode=0755
+
+  - name: Install mesos configuration file
+    template:
+      src: templates/mesos-config-master.j2
+      dest: mesos-ggsp/config
+      mode: 0440
+
+  - name: Install mesos-compose
+    get_url:
+      url: https://raw.githubusercontent.com/j3k0/mesos-compose/{{ mesos_version }}/compose
+      dest: /usr/local/bin/mesos-compose
+      mode: 0770
+
+  - name: Generate mesos-ggsp master config
+    command: mesos-compose master
+    args:
+      chdir: mesos-ggsp
+      creates: docker-compose.yml
+
+  - name: Check if mesos-master is running
+    command: docker ps
+    changed_when: False
+    register: mesosmaster_docker_ps
+
+  - name: Start mesos-ggsp masters
+    command: docker-compose up -d --no-recreate
+    args:
+      chdir: mesos-ggsp
+    when: not 'mesosggsp_mesosmaster_1' in mesosmaster_docker_ps.stdout
+
+  when: mesos_master_id is defined

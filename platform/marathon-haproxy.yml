@@ -1,0 +1,32 @@
+---
+- hosts: marathon-api-server
+  gather_facts: no
+
+  vars:
+    app_name: platform/marathon-haproxy
+    app_port: 10000
+    marathon_wait_for_deployment: False
+    docker_bip: "172.17.0.1"
+
+  roles:
+  - role: topface.marathon_app
+    tags:
+      - platform
+      - haproxy
+    marathon_url: http://{{ inventory_hostname }}:8080
+    marathon_app:
+      id: /{{ app_name }}
+      container:
+        type: DOCKER
+        docker:
+          image: bobrik/marathon-tcp-haproxy:latest
+          network: HOST
+      instances: 3
+      cpus: 0.1
+      mem: 16
+      ports:
+        - "{{ app_port }}"
+      env:
+        RELOAD_TTL: "10"
+        DISCOVERY_URL: "{{ groups['mesos-masters'][0] }}:8080 {{ groups['mesos-masters'][1] }}:8080 {{ groups['mesos-masters'][2] }}:8080"
+        HAPROXY_HOST: "{{ docker_bip }}"

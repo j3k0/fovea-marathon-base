@@ -1,0 +1,55 @@
+---
+- hosts: all
+  become: true
+
+  vars:
+    tinc_net: ggsp
+
+  tasks:
+    - block:
+
+      - name: Install quicktinc
+        get_url:
+          url: https://raw.githubusercontent.com/j3k0/quicktinc/master/quicktinc
+          dest: /usr/local/bin/quicktinc
+          mode: 0755
+
+      - name: Setup tinc
+        command: >
+          quicktinc --net={{ tinc_net }} --node={{ inventory_hostname }}
+          --public-ip={{ ip }} --private-ip={{ tun0 }}
+          {% for node in groups.all %}{% if node != inventory_hostname %}
+          --connect-to={{node}}
+          {% endif %}{% endfor %}
+        args:
+          creates: /srv/tinc/{{ tinc_net }}/tinc.conf
+
+      - name: Fetch host files
+        fetch:
+          src: /srv/tinc/{{ tinc_net }}/hosts/{{ inventory_hostname }}
+          dest: "{{ inventory_dir }}/tmp/nodes"
+
+      - name: Synchronize host files
+        copy:
+          src: "{{ inventory_dir }}/tmp/nodes/{{ item }}/srv/tinc/{{ tinc_net }}/hosts/{{ item }}"
+          dest: /srv/tinc/{{ tinc_net }}/hosts/{{ item }}
+          mode: 0644
+        with_items: groups.all
+
+      - name: Check if tinc is running
+        command: docker ps
+        register: tinc_docker_ps
+        changed_when: False
+
+      - name: Start tinc
+        command: >
+          docker run -d --restart=always
+          --name=tinc_{{ tinc_net }}_{{ inventory_hostname }}
+          --net=host
+          --device=/dev/net/tun
+          --cap-add NET_ADMIN
+          --volume /srv/tinc:/etc/tinc
+          jenserat/tinc -n {{ tinc_net }} start -D
+        when: not 'tinc_{{ tinc_net }}_{{ inventory_hostname }}' in tinc_docker_ps.stdout
+
+      when: tun0 is defined

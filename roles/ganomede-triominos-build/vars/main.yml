@@ -1,0 +1,5 @@
+---
+ganomede_triominos_git_dest: /tmp/ganomede-triominos
+ganomede_triominos_git_version: "v1.1.7"
+ganomede_triominos_image_name: "ganomede-triominos"
+ganomede_triominos_image: "{{ ganomede_triominos_git_dest }}/docker-images/{{ ganomede_triominos_image_name }}"

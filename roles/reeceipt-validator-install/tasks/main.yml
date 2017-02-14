@@ -1,0 +1,15 @@
+---
+- name: Copy image to nodes storage
+  copy:
+    src: "{{ reeceipt_validator_image }}.{{ commit_id }}"
+    dest: /tmp/{{ image_name }}.{{ commit_id }}.tar
+    mode: 0644
+
+- name: Check if image exists
+  command: docker images
+  register: reeceipt_validator_docker_images
+  changed_when: False
+
+- name: Load the image on all slaves
+  action: shell docker load -i /tmp/{{ image_name }}.{{ commit_id }}.tar
+  when: not image_name in reeceipt_validator_docker_images.stdout or not commit_id in reeceipt_validator_docker_images.stdout

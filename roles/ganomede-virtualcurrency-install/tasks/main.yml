@@ -1,0 +1,16 @@
+---
+# image
+- name: Copy image to nodes storage
+  copy:
+    src: "{{ ganomede_virtualcurrency_image }}.{{ ganomede_virtualcurrency_git_version }}"
+    dest: /tmp/{{ ganomede_virtualcurrency_image_name }}.{{ ganomede_virtualcurrency_git_version }}.tar
+    mode: 0644
+
+- name: Check if image exists on slaves
+  command: docker images {{ ganomede_virtualcurrency_image_name }}
+  register: ganomede_virtualcurrency_docker_images
+  changed_when: False
+
+- name: Load the image on all slaves
+  action: shell docker load -i /tmp/{{ ganomede_virtualcurrency_image_name }}.{{ ganomede_virtualcurrency_git_version }}.tar
+  when: not ganomede_virtualcurrency_git_version in ganomede_virtualcurrency_docker_images.stdout

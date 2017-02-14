@@ -1,0 +1,5 @@
+---
+ganomede_virtualcurrency_git_dest: /tmp/ganomede-virtualcurrency
+ganomede_virtualcurrency_git_version: "v0.9.0"
+ganomede_virtualcurrency_image_name: "ganomede-virtualcurrency"
+ganomede_virtualcurrency_image: "{{ ganomede_virtualcurrency_git_dest }}/docker-images/{{ ganomede_virtualcurrency_image_name }}"

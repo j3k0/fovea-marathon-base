@@ -1,0 +1,16 @@
+#!/bin/bash -e
+#
+# slavedown
+#
+# This script is executed at the begginning of shutdown and
+# reboot runlevels.
+
+{% if 'mesos-slaves' in group_names %}
+    # Stop mesos slave
+    (cd /root/mesos-ggsp-slave && /usr/local/bin/docker-compose kill -s SIGUSR1 mesosslave)
+    echo "Waiting 10 seconds for service to shutdown cleanly..."
+    sleep 10
+{% endif %}
+
+exit 0
+

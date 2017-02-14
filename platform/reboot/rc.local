@@ -1,0 +1,60 @@
+#!/bin/bash -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+
+# Fixes for redis
+{% if 'mesos-slaves' in group_names %}
+
+# When overcommit_memory is set to 0.
+# Background save may fail under low memory condition.
+# To fix this issue or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+sysctl vm.overcommit_memory=1
+
+# When you have Transparent Huge Pages (THP) support enabled in your kernel.
+# This will create latency and memory usage issues with Redis.
+# To fix this issue run the command 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' as root.
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+
+{% endif %}
+
+# Wait for the tun0 interface to be up
+N=0
+while ! ifconfig tun0; do
+    sleep 1
+    N=$((N + 1))
+    if [ $N -gt 60 ]; then
+        exit 0
+    fi
+done
+sleep 1
+
+# {% if 'mesos-masters' in group_names %}
+#     # Start glusterfs (requires fonctional virtual network)
+#     service glusterfs-server start || true
+# {% endif %}
+#
+# # Mount shared data
+# N=0
+# while ! mount /mnt/data; do
+#     sleep 1
+#     N=$((N + 1))
+#     if [ $N -gt 60 ]; then
+#         exit 0
+#     fi
+# done
+
+{% if 'mesos-masters' in group_names %}
+    # Start mesos master
+    (cd /root/mesos-ggsp && /usr/local/bin/docker-compose up -d)
+{% endif %}
+
+{% if 'mesos-slaves' in group_names %}
+    # Start mesos slave
+    (cd /root/mesos-ggsp-slave && /usr/local/bin/docker-compose up -d)
+{% endif %}
+
+exit 0

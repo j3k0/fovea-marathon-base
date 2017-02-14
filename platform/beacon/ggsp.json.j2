@@ -1,0 +1,42 @@
+{
+  "alerts": [
+  {
+    "name":  "Master Proxy Process",
+    "method": "last_value",
+    "query": "alias(*.gauges.system.*.triominos.prod.master-proxy.nproc, \"nproc\")",
+    "no_data": "normal",
+    "ignore_nan": true,
+    "rules": ["critical: < 1", "warning: > 1"]
+  }, {
+    "name":  "NodeJS Stuck Process",
+    "interval": "20minute",
+    "time_window": "1h",
+    "history_size": "1day",
+    "method": "average",
+    "query": "aliasByNode(scale(*.gauges.system.*.nodejs.cpu_usage,0.01),3,4)",
+    "rules": ["warning: > 99"]
+  }, {
+    "name": "Challenge 4xx",
+    "method": "average",
+    "query": "aliasByNode(movingAverage(perSecond(stats.gauges.triominos.prod.masterproxy.challenges-v1.backend.hrsp_4xx),\"10min\"),5)",
+    "rules": ["warning: > 0.1", "critical: > 0.25"]
+  }, {
+    "name": "Notifications 5xx",
+    "method": "average",
+    "query": "movingAverage(perSecond(stats.gauges.triominos.prod.masterproxy.*.backend.hrsp_5xx),\"5min\")",
+    "repeat_interval": "12hour",
+    "rules": ["warning: > 100", "critical: < 250"]
+  }, {
+    "name": "Num Current Sessions",
+    "method": "average",
+    "query": "sumSeries(movingAverage(stats.gauges.triominos.prod.masterproxy.*.backend.scur,\"5min\"))",
+    "repeat_interval": "12hour",
+    "rules": ["warning: < 500", "critical: < 100"]
+  }, {
+    "name": "Num Active Slaves",
+    "method": "average",
+    "query": "maxSeries(*.gauges.mesos.master.*.master.slaves_active)",
+    "repeat_interval": "12hour",
+    "rules": ["warning: < 3.1", "critical: < 2.1"]
+  }]
+}

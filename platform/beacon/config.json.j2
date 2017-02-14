@@ -1,0 +1,56 @@
+{
+  "logging": "debug",
+  "interval": "1minute",
+  "graphite_url": "http://{{ hostvars[groups["marathon-api-server"][0]].tun0 }}:2080",
+  "method": "average",
+  "time_window": "5minute",
+  "format": "none",
+  "prefix": "[{{ cluster_name }}]",
+{% if smtp_enabled and smtp_host and smtp_username and smtp_password and smtp_from %}
+  "smtp": {
+    "host": "{{ smtp_host }}",
+    "port": {{ smtp_port }},
+    "username": "{{ smtp_username}}",
+    "password": "{{ smtp_password }}",
+    "use_tls": {{ smtp_use_tls }},
+    "from": "{{ smtp_from }}",
+    "to": ["{{ admin_email }}"]
+  },
+%{ endif }%
+  "include": ["/srv/alerting/etc/{{ cluster_name }}.json"],
+  "alerts": [
+{% for host in groups['mesos-masters'] %}
+  {
+    "name":  "Marathon on {{ host }}",
+    "source": "url",
+    "query": "http://{{ hostvars[host].tun0 }}:8080/ping",
+    "rules": ["critical: != 200"]
+  },
+  {
+    "name":  "Mesos Master on {{ host }}",
+    "source": "url",
+    "query": "http://{{ hostvars[host].tun0 }}:5050/health",
+    "rules": ["critical: != 200"]
+  },
+{% endfor %}
+{% for host in groups['mesos-slaves'] %}
+  {
+    "name":  "Mesos Slave on {{ host }}",
+    "source": "url",
+    "query": "http://{{ hostvars[host].tun0 }}:5051/health",
+    "repeat_interval": "24hour",
+    "rules": ["critical: != 200"]
+  },
+{% endfor %}
+  {
+    "name": "Elected Mesos Master",
+    "query": "sumSeries(*.gauges.mesos.master.*.master.elected)",
+    "rules": ["critical: < 0.5", "critical: > 1.5"]
+  },
+  {
+    "name": "Mesos Launch Errors",
+    "query": "sumSeries(perSecond(stats.gauges.mesos.slave.*.slave.container_launch_errors))",
+    "rules": ["critical: > 0.1", "warning: > 0.01"]
+  }
+  ]
+}

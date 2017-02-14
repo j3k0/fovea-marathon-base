@@ -1,0 +1,9 @@
+port_graphite_nginx: 2080
+port_graphite_carbon_receiver_plaintext: 2003
+port_graphite_carbon_receiver_pickle: 2004
+port_graphite_carbon_aggregator_plaintext: 2023
+port_graphite_carbon_aggregator_pickle: 2024
+port_graphite_statsd: 8125
+port_graphite_statsd_admin: 8126
+
+smtp_enabled: false

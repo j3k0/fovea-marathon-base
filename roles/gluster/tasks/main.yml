@@ -1,0 +1,59 @@
+---
+- name: Ensure GlusterFS is installed.
+  apt:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+    - glusterfs-server
+    - attr
+
+- name: Ensure GlusterFS server is started
+  service: name=glusterfs-server state=started
+
+- name: Ensure GlusterFS is bound to private network only
+  lineinfile:
+    dest: /etc/glusterfs/glusterd.vol
+    regexp: '.*socket\.bind-address {{ tun0 }}$'
+    line: "    option transport.socket.bind-address {{ tun0 }}"
+    insertafter: ".*transport.socket.read-fail-log.*"
+    state: present
+
+- lineinfile:
+    dest: /etc/glusterfs/glusterd.vol
+    regexp: '.*rmda\.bind-address {{ tun0 }}$'
+    line: "    option transport.rmda.bind-address {{ tun0 }}"
+    insertafter: ".*transport.socket.bind-address.*"
+    state: present
+
+- lineinfile:
+    dest: /etc/glusterfs/glusterd.vol
+    regexp: '.*tcp\.bind-address {{ tun0 }}$'
+    line: "    option transport.tcp.bind-address {{ tun0 }}"
+    insertafter: ".*transport.rmda.bind-address.*"
+    state: present
+
+- name: Ensure GlusterFS brick directory exists.
+  file: "path=/gluster-brick/{{ gluster_brick_name }} state=directory mode=0775"
+
+- name: Configure GlusterFS volume.
+  gluster_volume:
+    state: present
+    name: "{{ gluster_brick_name }}"
+    brick: "/gluster-brick/{{ gluster_brick_name }}"
+    replicas: 3
+    cluster: "{{ groups.gluster[0:3] | join(',') }}"
+    #rebalance: true
+    host: "{{ inventory_hostname }}"
+    force: yes
+  run_once: true
+
+- name: Start GlusterFS volume
+  gluster_volume: state=started name={{ gluster_brick_name }}
+
+- name: Ensure GlusterFS volume is mounted.
+  mount:
+    name: "/mnt/{{ gluster_brick_name }}"
+    src: "{{ inventory_hostname }}:/{{ gluster_brick_name }}"
+    fstype: glusterfs
+    opts: "defaults,_netdev"
+    state: mounted
