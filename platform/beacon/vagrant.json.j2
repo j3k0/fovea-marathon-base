@@ -1,9 +1,0 @@
-{
-  "alerts": [
-  {
-    "name": "Num Active Slaves",
-    "query": "maxSeries(*.gauges.mesos.master.*.master.slaves_active)",
-    "rules": ["warning: < 2.9", "critical: < 1.9"]
-  }
-  ]
-}

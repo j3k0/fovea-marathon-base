@@ -1,7 +1,0 @@
----
-- hosts: mesos
-  gather_facts: no
-  tasks:
-    - name: Copy docker-bunyan scripts
-      tags: [ "tool", "bunyan" ]
-      copy: src=bunyan/docker-bunyan dest=/usr/local/bin/docker-bunyan mode=0755

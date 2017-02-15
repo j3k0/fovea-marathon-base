@@ -1,3 +1,4 @@
 password-*
 inventory/vagrant/.vagrant/
 *.retry
+.mesos-images

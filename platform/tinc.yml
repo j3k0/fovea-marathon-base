@@ -34,7 +34,7 @@
           src: "{{ inventory_dir }}/tmp/nodes/{{ item }}/srv/tinc/{{ tinc_net }}/hosts/{{ item }}"
           dest: /srv/tinc/{{ tinc_net }}/hosts/{{ item }}
           mode: 0644
-        with_items: groups.all
+        with_items: "{{ groups.all }}"
 
       - name: Check if tinc is running
         command: docker ps

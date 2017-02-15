@@ -1,7 +1,0 @@
-#!/bin/bash
-if [ "x$1" = "x" ]; then
-    echo "usage: $0 <container id>"
-    exit 1
-fi
-docker logs $1 > /tmp/bunyan-logs; docker run -v /tmp/bunyan-logs:/logs --rm -it mirkokiefer/node-bunyan bunyan -l 0 /logs
-rm -f /tmp/bunyan-logs
