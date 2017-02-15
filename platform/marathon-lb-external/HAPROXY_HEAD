@@ -35,7 +35,7 @@ defaults
   option            http-server-close
   option            redispatch
 listen stats
-  bind {{ tun0 }}:9090
+  bind {{ tun0 }}:{{ app_port }}
   balance
   mode http
   stats enable

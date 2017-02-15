@@ -2,7 +2,8 @@
 - hosts: mesos-slaves
   gather_facts: no
   vars:
-    app_name: platform/marathon-lb
+    app_name: platform/marathon-lb-internal
+    app_port: 9092
 
   tasks:
     - name: Create templates storage
@@ -13,7 +14,7 @@
 
     - name: Copy templates
       template:
-        src: marathon-lb/{{ item }}
+        src: marathon-lb-internal/{{ item }}
         dest: "/usr/local/{{ cluster_name }}/{{ app_name }}/templates/{{ item }}"
         mode: 0440
       with_items:
@@ -37,8 +38,8 @@
   gather_facts: no
 
   vars:
-    app_name: platform/marathon-lb
-    app_port: 9090
+    app_name: platform/marathon-lb-internal
+    app_port: 9092
 
   roles:
   - role: topface.marathon_app
@@ -52,7 +53,7 @@
       cmd: >
         /marathon-lb/run sse
         --marathon "http://{{ groups['marathon-api-server'][0] }}:8080"
-        --group external
+        --group internal
         --health-check
         --ssl-certs "{{ ssl_certs }}"
       container:
@@ -81,7 +82,7 @@
           intervalSeconds: 5
           timeoutSeconds: 5
       constraints:
-        - [ "hostname", "LIKE", "({{ groups.loadbalancers[0] }}|{{ groups.loadbalancers[1] }})" ]
+        - [ "hostname", "LIKE", "({{ groups['marathon-lb-internal'][0] }}|{{ groups['marathon-lb-internal'][1] }})" ]
 
       upgradeStrategy:
         minimumHealthCapacity: 0
