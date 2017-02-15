@@ -1,0 +1,46 @@
+---
+- hosts: all
+  become: true
+
+  tasks:
+
+  - name: 'Login as root'
+    shell: 'cat /home/vagrant/.ssh/authorized_keys >> /root/.ssh/authorized_keys'
+
+  - name: 'Add docker-registry.local'
+    lineinfile:
+      name: '/etc/hosts'
+      line: '192.168.34.1 docker-registry.local'
+      regexp: '^192\.168\.34\.1'
+      owner: root
+      group: root
+      mode: 0644
+
+  - stat: path=/swapfile
+    register: swapfile_stat
+
+  - block:
+
+    - name: 'Allocate swapfile space'
+      shell: 'fallocate -l 1G /swapfile'
+
+    - name: 'Set swapfile permissions'
+      shell: 'chmod 600 /swapfile'
+
+    - name: 'Make swapfile ready for swap'
+      shell: 'mkswap /swapfile'
+
+    - name: 'Enable swap'
+      shell: 'swapon /swapfile'
+      ignore_errors: yes
+
+    when: swapfile_stat.stat.exists == False
+
+  - name: 'Enable swap permanently'
+    lineinfile:
+      name: '/etc/fstab'
+      line: '/swapfile   none    swap    sw    0   0'
+      regexp: '^/swapfile'
+      owner: root
+      group: root
+      mode: 0644

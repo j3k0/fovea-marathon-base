@@ -1,0 +1,43 @@
+# Vagrant hostfile
+
+[vagrant1]
+vagrant1 ansible_ssh_port=2222 ip=192.168.34.11 tun0=192.168.35.11 mesos_master_id=1
+
+[vagrant2]
+vagrant2 ansible_ssh_port=2200 ip=192.168.34.12 tun0=192.168.35.12 mesos_master_id=2
+
+[vagrant3]
+vagrant3 ansible_ssh_port=2201 ip=192.168.34.13 tun0=192.168.35.13 mesos_master_id=3
+
+[vagrant:children]
+vagrant1
+vagrant2
+vagrant3
+
+[mesos-masters:children]
+vagrant1
+vagrant2
+vagrant3
+
+[mesos-slaves:children]
+vagrant1
+vagrant2
+vagrant3
+
+[mesos:children]
+mesos-masters
+mesos-slaves
+
+[gluster:children]
+vagrant1
+vagrant2
+vagrant3
+
+[marathon-api-server:children]
+vagrant1
+
+[couchdb:children]
+vagrant3
+
+[master-proxy:children]
+vagrant2

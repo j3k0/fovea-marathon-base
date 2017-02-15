@@ -1,1 +1,3 @@
 password-*
+inventory/vagrant/.vagrant/
+*.retry

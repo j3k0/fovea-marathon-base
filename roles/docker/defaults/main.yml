@@ -1,0 +1,3 @@
+---
+docker_bip: "172.17.0.1"
+ubuntu_version: "ubuntu-xenial"

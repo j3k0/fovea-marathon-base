@@ -5,6 +5,12 @@
   changed_when: False
   register: docker_info
 
+- name: Check if docker-compose is installed
+  shell: docker-compose version
+  ignore_errors: yes
+  changed_when: False
+  register: docker_compose_info
+
 - block:
   - name: Add docker repository gpg key
     apt_key:
@@ -13,7 +19,9 @@
       state: present
 
   - name: Add docker repository
-    apt_repository: repo='deb https://apt.dockerproject.org/repo ubuntu-xenial main' state=present
+    apt_repository:
+      repo: deb https://apt.dockerproject.org/repo {{ ubuntu_version }} main
+      state: present
 
   - name: Install docker
     apt: name=docker-engine update_cache=yes
@@ -27,10 +35,13 @@
   - name: Start docker
     service: name=docker state=started enabled=true
 
+  when: docker_info is defined and not docker_info.rc == 0
+
+- block:
   - name: Install docker-compose
     get_url:
       url: https://github.com/docker/compose/releases/download/1.9.0/docker-compose-Linux-x86_64
       dest: /usr/local/bin/docker-compose
       mode: 0770
 
-  when: docker_info is defined and not docker_info.rc == 0
+  when: docker_compose_info is defined and not docker_compose_info.rc == 0
