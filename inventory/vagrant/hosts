@@ -31,8 +31,9 @@ mesos-slaves
 [marathon-api-server:children]
 vagrant1
 
-[couchdb:children]
-vagrant3
-
 [master-proxy:children]
+vagrant2
+
+[loadbalancers:children]
+vagrant1
 vagrant2

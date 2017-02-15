@@ -2,3 +2,4 @@
 cluster_name: "vagrant"
 zk_hosts: "vagrant1:2181,vagrant2:2181,vagrant3:2181"
 mesos_masters: "vagrant1 vagrant2 vagrant3"
+ssl_certs: "/ssl/self-signed"
