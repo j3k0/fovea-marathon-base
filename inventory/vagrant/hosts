@@ -28,11 +28,6 @@ vagrant3
 mesos-masters
 mesos-slaves
 
-[gluster:children]
-vagrant1
-vagrant2
-vagrant3
-
 [marathon-api-server:children]
 vagrant1
 
