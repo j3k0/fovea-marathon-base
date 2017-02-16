@@ -6,19 +6,23 @@
     # Idempotent way to build a /etc/hosts file with Ansible using your Ansible hosts inventory for a source.
     # Will include all hosts the playbook is run on.
     # Inspired from http://xmeblog.blogspot.com/2013/06/ansible-dynamicaly-update-etchosts.html
-    - name: "Build hosts file "
+    - name: "Build hosts file (VPN hosts)"
       lineinfile: dest=/etc/hosts regexp='.*{{ item }}$' line="{{ hostvars[item].tun0 }} {{item}}" state=present
       when: hostvars[item].tun0 is defined
       with_items: "{{ groups['all'] }}"
 
-    - name: "Build hosts file "
+    - name: "Build hosts file (public hosts IP)"
+      lineinfile: dest=/etc/hosts regexp='.*{{ item }}.ext$' line="{{ hostvars[item].ip }} {{item}}.ext" state=present
+      when: hostvars[item].ip is defined
+      with_items: "{{ groups['all'] }}"
+
+    - name: "Build hosts file (tun0)"
       lineinfile: dest=/etc/hosts regexp='.*tun0$' line="{{ tun0 }} tun0" state=present
       when: tun0 is defined
 
   roles:
     - docker
     - tinc
-    - achaussier.ntp
 
   tasks:
 

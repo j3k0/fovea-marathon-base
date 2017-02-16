@@ -26,8 +26,10 @@ Your inventory file should list the following groups:
  * `mesos-slaves`
    * they'll run mesos agents.
    * can be on the same hosts as mesos-masters.
- * `loadbalancers`
-   * 2 hosts that'll serve as load-balancers
+ * `marathon-lb-external`
+   * 2 hosts that'll serve as public load-balancers
+ * `marathon-lb-internal`
+   * 2 hosts that'll serve as private load-balancers
 
 Following variables have to be defined:
 
@@ -45,3 +47,5 @@ Following variables have to be defined:
    * concatenated PEM certificate and private key (see haproxy doc)
 
 See inventory/vagrant/ for an example setup.
+
+## Load Balancers
