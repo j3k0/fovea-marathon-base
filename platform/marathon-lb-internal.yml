@@ -19,6 +19,8 @@
         mode: 0440
       with_items:
         - HAPROXY_HEAD
+        - HAPROXY_FRONTEND_HEAD
+        - HAPROXY_HTTP_FRONTEND_APPID_HEAD
         - HAPROXY_HTTP_FRONTEND_HEAD
         - HAPROXY_HTTPS_FRONTEND_HEAD
 
@@ -56,6 +58,7 @@
         --group internal
         --health-check
         --ssl-certs "{{ ssl_certs }}"
+        --dont-bind-http-https
       container:
         type: DOCKER
         docker:
@@ -83,6 +86,7 @@
           timeoutSeconds: 5
       constraints:
         - [ "hostname", "LIKE", "({{ groups['marathon-lb-internal'][0] }}|{{ groups['marathon-lb-internal'][1] }})" ]
+        - [ "hostname", "UNIQUE" ]
 
       upgradeStrategy:
         minimumHealthCapacity: 0
