@@ -30,12 +30,12 @@
     lineinfile:
       dest: /etc/default/docker
       regexp: ^DOCKER_OPTS
-      line: 'DOCKER_OPTS="--dns 8.8.8.8 --dns 8.8.4.4 --ip {{ tun0 }} --bip={{ docker_bip }}/16"'
+      line: 'DOCKER_OPTS="{% for dns in groups["mesos-dns"] %} --dns {{ hostvars[dns].tun0 }} {% endfor %} --dns 8.8.8.8 --dns 8.8.4.4 --ip {{ tun0 }} --bip={{ docker_bip }}/16"'
 
   - name: Start docker
     service: name=docker state=started enabled=true
 
-  when: docker_info is defined and not docker_info.rc == 0
+  #when: docker_info is defined and not docker_info.rc == 0
 
 - block:
   - name: Install docker-compose

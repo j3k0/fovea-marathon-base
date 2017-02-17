@@ -1,0 +1,5 @@
+---
+- hosts: mesos-dns
+  become: true
+  roles:
+    - mesos-dns

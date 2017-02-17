@@ -1,0 +1,26 @@
+{
+  "zk": "zk://{{ zk_hosts }}/mesos",
+  "masters": [ {{ mesos_masters
+      | regex_replace('$', ':5050"')
+      | regex_replace(' ', ':5050","')
+      | regex_replace('^', '"')
+  }} ],
+  "refreshSeconds": 60,
+  "ttl": 60,
+  "domain": "mesos",
+  "port": 53,
+  "resolvers": ["8.8.8.8", "8.8.4.4"],
+  "timeout": 5,
+  "dnson": true,
+  "httpon": false,
+  "httpport": 8123,
+  "externalon": true,
+  "listener": "{{ tun0 }}",
+  "SOAMname": "ns1.mesos",
+  "SOARname": "root.ns1.mesos",
+  "SOARefresh": 60,
+  "SOARetry":   600,
+  "SOAExpire":  86400,
+  "SOAMinttl": 60,
+  "IPSources": ["host"]
+}

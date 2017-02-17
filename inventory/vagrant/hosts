@@ -31,9 +31,6 @@ mesos-slaves
 [marathon-api-server:children]
 vagrant1
 
-[master-proxy:children]
-vagrant2
-
 [marathon-lb-internal:children]
 vagrant2
 vagrant3
@@ -42,3 +39,6 @@ vagrant3
 vagrant1
 vagrant2
 
+[mesos-dns:children]
+vagrant1
+vagrant3

@@ -1,0 +1,44 @@
+---
+- name: Create storage
+  file:
+    path: "/mnt/platform/mesos-dns"
+    state: directory
+    mode: 0755
+
+- name: Download mesos-dns binary {{ mesos_dns.version | default(mesos_dns_defaults.version) }}
+  tags: [ platform, mesos_dns ]
+  get_url:
+    url: https://github.com/mesosphere/mesos-dns/releases/download/{{ mesos_dns.version | default(mesos_dns_defaults.version) }}/mesos-dns-{{ mesos_dns.version | default(mesos_dns_defaults.version) }}-linux-amd64
+    dest: /mnt/platform/mesos-dns/mesos-dns
+    mode: 0770
+
+- name: Install mesos-dns configuration file
+  tags: [ platform, mesos_dns ]
+  template:
+    src: templates/config.json.j2
+    dest: /mnt/platform/mesos-dns/mesos-dns-config.json
+    mode: 0440
+
+- name: Start mesos-dns with marathon
+  tags: [ platform, mesos_dns ]
+  include_role:
+    name: topface.marathon_app
+  vars:
+    marathon_url: http://{{ groups['marathon-api-server'][0] }}:8080
+    marathon_wait_for_deployment: False
+    marathon_app:
+      id: /platform/mesos-dns
+      cmd: /mnt/platform/mesos-dns/mesos-dns -v 1 -config=/mnt/platform/mesos-dns/mesos-dns-config.json
+      cpus: "{{ mesos_dns.cpus | default(mesos_dns_defaults.cpus) }}"
+      mem: "{{ mesos_dns.mem | default(mesos_dns_defaults.mem) }}"
+      instances: "{{ groups['mesos-dns'] | length }}"
+      constraints:
+        - ["hostname", "LIKE", "({{ groups['mesos-dns'] | join('|') }})"]
+        - ["hostname", "UNIQUE"]
+      healthChecks:
+        - protocol: TCP
+          port: 53
+          gracePeriodSeconds: 120
+          maxConsecutiveFailures: 3
+          intervalSeconds: 20
+          timeoutSeconds: 20
