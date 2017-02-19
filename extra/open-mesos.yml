@@ -1,0 +1,19 @@
+---
+- hosts: mesos-masters
+  gather_facts: no
+  become: true
+
+  tasks:
+  - name: Publish port 5050 (mesos-master)
+    shell: iptables -t nat -A PREROUTING -p tcp -i {{interface}} -m tcp --dport 5050 -j DNAT --to-destination {{tun0}}:5050
+
+  - name: Publish port 8080 (marathon)
+    shell: iptables -t nat -A PREROUTING -p tcp -i {{interface}} -m tcp --dport 8080 -j DNAT --to-destination {{tun0}}:8080
+
+- hosts: mesos-slaves
+  gather_facts: no
+  become: true
+
+  tasks:
+  - name: Publish port 5051 (mesos-slave)
+    shell: iptables -t nat -A PREROUTING -p tcp -i {{interface}} -m tcp --dport 5051 -j DNAT --to-destination {{tun0}}:5051

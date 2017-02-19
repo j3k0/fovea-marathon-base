@@ -1,0 +1,10 @@
+---
+- hosts: mesos
+  gather_facts: no
+  tasks:
+    - name: Copy docker-bunyan scripts
+      tags: [ "tool", "bunyan" ]
+      lineinfile:
+        name: "/root/.bashrc"
+        regexp: "^alias bunyan="
+        line: alias bunyan="docker run --rm -i ganomede/events:v1.0.1 ./node_modules/.bin/bunyan"
