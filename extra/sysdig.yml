@@ -1,0 +1,11 @@
+---
+- hosts: all
+  roles:
+   - role: valentinogagliardi.sysdig
+
+  tasks:
+  - name: Ensure {{ item }} is installed.
+    apt: name={{ item }} state=installed
+    with_items:
+      - iotop
+      - htop
