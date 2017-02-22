@@ -1,0 +1,10 @@
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+    - name: Install dig alias
+      tags: [ "tool", "dig" ]
+      lineinfile:
+        name: "/root/.bashrc"
+        regexp: "^alias dig="
+        line: alias dig="docker run --net=host --rm -i sequenceiq/alpine-dig dig"

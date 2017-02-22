@@ -1,8 +1,8 @@
 ---
-- hosts: mesos
+- hosts: all
   gather_facts: no
   tasks:
-    - name: Copy docker-bunyan scripts
+    - name: Install bunyan alias
       tags: [ "tool", "bunyan" ]
       lineinfile:
         name: "/root/.bashrc"

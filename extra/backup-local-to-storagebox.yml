@@ -1,0 +1,151 @@
+---
+#
+# backup-local-to-storagebox
+#
+#   - Pre-condition: mounting the storagebox on localhost should already be possible
+#
+#   - Tasks:
+#     - Generate id_rsa on remote hosts if they do not already exist
+#     - Install ssh_fs, make sure storagebox is mountable without password
+#       by adding id_rsa.pub to the storagebox's authorized_keys
+#     - Configure /etc/fstab
+#     - Install and schedule backup script
+#
+- hosts: all
+
+  gather_facts: no
+  become: true
+  tags: [ "backup" ]
+
+  tasks:
+  - block:
+
+    - name: Installing sshfs
+      apt: name=sshfs state=installed
+
+    - name: Creating ssh id_rsa key
+      shell: ssh-keygen -b 4096 -t rsa -N "" -f /root/.ssh/id_rsa
+      args:
+        creates: "/root/.ssh/id_rsa"
+
+    - name: Preparing authorized_keys for host
+      shell: ssh-keygen -e -f ~/.ssh/id_rsa.pub | grep -v "Comment:" > /tmp/{{ storage_box.host }}-ak
+      args:
+        creates: "/tmp/{{ storage_box.host }}-ak"
+
+    - name: Fetch authorized_keys files
+      fetch:
+        flat: true
+        src: "/tmp/{{ storage_box.host }}-ak"
+        dest: "{{ inventory_dir }}/tmp/storage_box/{{ storage_box.host }}/all_authorized_keys/{{ inventory_hostname }}"
+
+    when: storage_box is defined
+
+- hosts: localhost
+  gather_facts: no
+  become: true
+  tags: [ "backup" ]
+  tasks:
+  - block:
+    - name: Installing sshfs
+      apt: name=sshfs state=installed
+
+    - name: Creating ssh id_rsa key
+      shell: ssh-keygen -b 4096 -t rsa -N "" -f /root/.ssh/id_rsa
+      args:
+        creates: "/root/.ssh/id_rsa"
+
+    - name: Preparing authorized_keys for localhost
+      shell: ssh-keygen -e -f ~/.ssh/id_rsa.pub | grep -v "Comment:" > {{ inventory_dir }}/tmp/storage_box/{{ item.host }}/all_authorized_keys/localhost
+      args:
+        creates: "{{ inventory_dir }}/tmp/storage_box/{{ item.host }}/all_authorized_keys/localhost"
+      with_items: "{{ storage_boxes }}"
+    
+    - name: Mounting storagebox
+      mount:
+        name: /srv/{{ item.host }}
+        src: "{{ item.user}}@{{ item.host }}:/"
+        fstype: fuse.sshfs
+        opts: defaults,_netdev,noatime
+        state: mounted
+      with_items: "{{ storage_boxes }}"
+
+    - name: Assembling authorized_keys
+      assemble:
+        src: "{{ inventory_dir }}/tmp/storage_box/{{ item.host }}/all_authorized_keys"
+        dest: "/srv/{{ item.host }}/.ssh/authorized_keys"
+        mode: 0644
+      with_items: "{{ storage_boxes }}"
+
+    - name: Creating disk images directory
+      file:
+        path: "/srv/{{ item.host }}/{{ cluster_name }}"
+        state: directory
+        mode: 0755
+      with_items: "{{ storage_boxes }}"
+
+    - name: Creating disk images
+      shell: dd if=/dev/zero of=/srv/{{ hostvars[item]['storage_box'].host }}/{{ cluster_name }}/{{ item }}.img bs=1 seek={{ hostvars[item].storage_box.size }} count=1 && mkfs.ext4 /srv/{{ hostvars[item]['storage_box'].host }}/{{ cluster_name }}/{{ item }}.img
+      args:
+        creates: /srv/{{ hostvars[item].storage_box.host }}/{{ cluster_name }}/{{ item }}.img
+      when: hostvars[item].storage_box is defined
+      with_items: "{{ groups.all }}"
+
+    - name: Unmounting storagebox
+      mount:
+        name: /srv/{{ item.host }}
+        state: unmounted
+      with_items: "{{ storage_boxes }}"
+
+- hosts: all
+
+  gather_facts: no
+  become: true
+  tags: [ "backup" ]
+
+  tasks:
+  - block:
+
+    - name: Creating /srv/storage_box directory
+      file:
+        path: /srv/{{ storage_box.host }}
+        state: directory
+        mode: 0755
+
+    - name: Creating /mnt/backup-to-storagebox
+      file:
+        path: /mnt/backup-to-storagebox
+        state: directory
+        mode: 0755
+
+    - name: Mounting storage_box
+      mount:
+        name: /srv/{{ storage_box.host }}
+        src: "{{ storage_box.user }}@{{ storage_box.host }}:/{{ cluster_name }}"
+        fstype: fuse.sshfs
+        opts: defaults,_netdev,noatime
+        state: present
+
+    - name: Mounting backup
+      mount:
+        name: /mnt/backup-to-storagebox
+        src: "/srv/{{ storage_box.host }}/{{ inventory_hostname }}.img"
+        fstype: ext4
+        opts: defaults,loop,noatime
+        state: present
+
+    - name: Creating backup script
+      template:
+        src: "./backup-local-to-storagebox.sh"
+        dest: "/root/backup-local-to-storagebox.sh"
+        mode: 0700
+    
+    - name: Installing backup cron jobs
+      cron:
+        name: "backup local data to storagebox"
+        hour: "2,7,10,13,15,18"
+        minute: "30"
+        job: /root/backup-local-to-storagebox.sh
+
+
+    when: storage_box is defined

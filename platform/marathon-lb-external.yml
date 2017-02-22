@@ -25,10 +25,7 @@
         - HAPROXY_HTTPS_FRONTEND_HEAD
 
     - name: Create certificates storage
-      file:
-        path: "/usr/local/{{ cluster_name }}/{{ app_name }}/ssl"
-        state: directory
-        mode: 0755
+      shell: "mkdir -p $(dirname /usr/local/{{ cluster_name }}/{{ app_name }}{{ ssl_certs }})"
 
     - name: Copy certificates
       copy:

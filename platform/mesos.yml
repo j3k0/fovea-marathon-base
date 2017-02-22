@@ -1,9 +1,6 @@
 ---
 - hosts: mesos
   become: true
-  roles:
-    - tinc
-    - docker
 
 - hosts: mesos-masters
   become: true
