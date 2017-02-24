@@ -1,0 +1,19 @@
+[Service]
+EnvironmentFile=-/etc/sysconfig/docker
+EnvironmentFile=-/etc/sysconfig/docker-storage
+EnvironmentFile=-/etc/sysconfig/docker-network
+ExecStart=
+ExecStart=/usr/bin/dockerd \
+        -H fd:// \
+{% for h in groups['mesos-dns'] %}
+        --dns {{ hostvars[h].tun0 }} \
+{% endfor %}
+        --dns 8.8.8.8 \
+        --dns 8.8.4.4 \
+        --ip {{ tun0 }} \
+        --bip={{ docker_bip }}/16 \
+        $OPTIONS \
+        $DOCKER_STORAGE_OPTIONS \
+        $DOCKER_NETWORK_OPTIONS \
+        $BLOCK_REGISTRY \
+        $INSECURE_REGISTRY

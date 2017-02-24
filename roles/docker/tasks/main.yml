@@ -28,11 +28,28 @@
 
   when: docker_info is defined and not docker_info.rc == 0
 
-- name: Make sure docker binds to the VPN
+- name: Make sure docker binds to the VPN on ubuntu-trusty
   lineinfile:
     dest: /etc/default/docker
     regexp: ^DOCKER_OPTS
     line: 'DOCKER_OPTS="{% for dns in groups["mesos-dns"] %} --dns {{ hostvars[dns].tun0 }} {% endfor %} --dns 8.8.8.8 --dns 8.8.4.4 --ip {{ tun0 }} --bip={{ docker_bip }}/16"'
+  when: ubuntu_version == "ubuntu-trusty"
+
+- block:
+  - name: Make sure docker binds to the VPN on ubuntu-xenial 1/2
+    tags: [ docker_config ]
+    file:
+      path: /etc/systemd/system/docker.service.d
+      state: directory
+      mode: 0755
+
+  - name: Make sure docker binds to the VPN on ubuntu-xenial 2/2
+    tags: [ docker_config ]
+    template:
+      src: templates/docker.conf.j2
+      dest: /etc/systemd/system/docker.service.d/docker.conf
+      mode: 0644
+  when: ubuntu_version == "ubuntu-xenial"
 
 - name: Start docker
   service: name=docker state=started enabled=true

@@ -1,0 +1,10 @@
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+    - name: Install curl alias
+      tags: [ "tool", "curl" ]
+      lineinfile:
+        name: "/root/.bashrc"
+        regexp: "^alias curl="
+        line: alias curl="docker run --net=host --rm -i byrnedo/alpine-curl"
