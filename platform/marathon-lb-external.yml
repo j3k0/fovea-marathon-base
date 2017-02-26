@@ -45,6 +45,7 @@
     tags:
       - platform
       - haproxy
+      - marathon
     marathon_url: http://{{ inventory_hostname }}:8080
     marathon_wait_for_deployment: False
     marathon_app:

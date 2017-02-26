@@ -1,6 +1,5 @@
 
 frontend {backend}
-  bind {{ ip }}:{servicePort}{sslCert}{bindOptions}
-  bind {{ tun0 }}:{servicePort}{sslCert}{bindOptions}
   mode {mode}
+  bind 0.0.0.0:{servicePort}{sslCert}{bindOptions}
 

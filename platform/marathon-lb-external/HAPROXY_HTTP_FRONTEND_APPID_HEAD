@@ -1,6 +1,5 @@
 
 frontend marathon_http_appid_in
-  bind {{ ip }}:9091
-  bind {{ tun0 }}:9091
+  bind 0.0.0.0:9091
   mode http
 
