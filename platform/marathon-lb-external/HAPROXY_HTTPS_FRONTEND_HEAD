@@ -1,3 +1,4 @@
 
 frontend marathon_https_in
   bind {{ ip }}:443
+  bind {{ tun0 }}:443

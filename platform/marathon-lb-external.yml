@@ -25,12 +25,12 @@
         - HAPROXY_HTTPS_FRONTEND_HEAD
 
     - name: Create certificates storage
-      shell: "mkdir -p $(dirname /usr/local/{{ cluster_name }}/{{ app_name }}{{ ssl_certs }})"
+      shell: "mkdir -p $(dirname /usr/local/{{ cluster_name }}/{{ app_name }}/{{ ssl_certs }})"
 
     - name: Copy certificates
       copy:
-        src: "..{{ ssl_certs }}"
-        dest: "/usr/local/{{ cluster_name }}/{{ app_name }}{{ ssl_certs }}"
+        src: "{{ inventory_dir }}/{{ ssl_certs }}"
+        dest: "/usr/local/{{ cluster_name }}/{{ app_name }}/{{ ssl_certs }}"
         mode: 0644
 
 - hosts: marathon-api-server
@@ -54,7 +54,7 @@
         --marathon "http://{{ groups['marathon-api-server'][0] }}:8080"
         --group external
         --health-check
-        --ssl-certs "{{ ssl_certs }}"
+        --ssl-certs "/{{ ssl_certs }}"
       container:
         type: DOCKER
         docker:
@@ -81,7 +81,6 @@
           intervalSeconds: 5
           timeoutSeconds: 5
       constraints:
-        - [ "hostname", "LIKE", "({{ groups['marathon-lb-external'][0] }}|{{ groups['marathon-lb-external'][1] }})" ]
         - [ "hostname", "UNIQUE" ]
 
       upgradeStrategy:

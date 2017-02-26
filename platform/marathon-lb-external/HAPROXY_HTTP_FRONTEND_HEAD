@@ -1,3 +1,4 @@
 
 frontend marathon_http_in
   bind {{ ip }}:80
+  bind {{ tun0 }}:80
