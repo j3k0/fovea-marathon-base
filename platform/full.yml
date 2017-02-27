@@ -1,23 +1,18 @@
 ---
 # - include: ntp.yml
 - include: net.yml
-  tags:
-    - net
+  tags: [ "net" ]
 
 - include: mesos.yml
-  tags:
-    - mesos
+  tags: [ "mesos" ]
 
 - include: reboot.yml
-  tags:
-    - reboot
+  tags: [ "reboot" ]
 
 - include: marathon-lb-external.yml
-  tags:
-    - marathon_lb
+  tags: [ "marathon_lb" ]
 
 # - include: marathon-lb-internal.yml
 
 - include: mesos-dns.yml
-  tags:
-    - mesos_dns
+  tags: [ "mesos_dns" ]
