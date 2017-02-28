@@ -27,9 +27,9 @@ Your inventory file should list the following groups:
    * they'll run mesos agents.
    * can be on the same hosts as mesos-masters.
  * `marathon-lb-external`
-   * 2 hosts that'll serve as public load-balancers
- * `marathon-lb-internal`
-   * 2 hosts that'll serve as private load-balancers
+   * public load-balancers
+ * `mesos-dns`
+   * DNS server for service discovery (for apps with static ports)
 
 Following variables have to be defined:
 
@@ -49,3 +49,7 @@ Following variables have to be defined:
 See inventory/vagrant/ for an example setup.
 
 ## Load Balancers
+
+ * `platorm/marathon-lb-external` will expose apps that have the `HAPROXY_GROUP=external` label.
+   * see [marathon-lb documentation](https://github.com/mesosphere/marathon-lb) for details.
+ *
