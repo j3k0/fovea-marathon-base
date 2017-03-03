@@ -3,7 +3,7 @@
   gather_facts: no
   tasks:
     - name: Install curl alias
-      tags: [ "tool", "curl" ]
+      tags: [ "platform", "tool", "curl" ]
       lineinfile:
         name: "/root/.bashrc"
         regexp: "^alias curl="

@@ -1,0 +1,60 @@
+---
+- hosts: mesos-slaves
+  gather_facts: no
+  vars:
+    app_name: platform/smtp
+
+  tasks:
+    - name: Create mail queue storage
+      file:
+        path: "/usr/local/{{ cluster_name }}/{{ app_name }}/mailqueue"
+        state: directory
+        mode: 0755
+
+- hosts: marathon-api-server
+  gather_facts: no
+
+  vars:
+    app_name: platform/smtp
+    app_port: 25
+
+  roles:
+  - role: topface.marathon_app
+    tags:
+      - platform
+      - hectane
+      - smtp
+    marathon_url: http://{{ inventory_hostname }}:8080
+    marathon_wait_for_deployment: False
+    marathon_app:
+      id: /{{ app_name }}
+      cmd: >
+        hectane
+        -disable-ssl-verification
+        -smtp-addr tun0:25
+        -bind tun0:8025
+        -directory /mailqueue
+      container:
+        type: DOCKER
+        docker:
+          image: hectane/hectane:latest
+          network: HOST
+        volumes:
+          - containerPath: /mailqueue
+            hostPath: "/usr/local/{{ cluster_name }}/{{ app_name }}/mailqueue"
+            mode: RW
+      instances: 1
+      cpus: 0.1
+      mem: 128
+      ports:
+        - "{{ app_port }}"
+      healthChecks:
+        - protocol: HTTP
+          path: "/v1/status"
+          port: "8025"
+          gracePeriodSeconds: 15
+          maxConsecutiveFailures: 3
+          intervalSeconds: 5
+          timeoutSeconds: 5
+      constraints:
+        - [ "hostname", "UNIQUE" ]

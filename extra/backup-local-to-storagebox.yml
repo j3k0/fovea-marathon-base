@@ -15,7 +15,7 @@
 
   gather_facts: no
   become: true
-  tags: [ "backup" ]
+  tags: [ "platform", "backup" ]
 
   tasks:
   - block:
@@ -44,7 +44,7 @@
 - hosts: localhost
   gather_facts: no
   become: true
-  tags: [ "backup" ]
+  tags: [ "platform", "backup" ]
   tasks:
   - block:
     - name: Installing sshfs
@@ -101,7 +101,7 @@
 
   gather_facts: no
   become: true
-  tags: [ "backup" ]
+  tags: [ "platform", "backup" ]
 
   tasks:
   - block:

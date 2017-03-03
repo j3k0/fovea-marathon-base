@@ -3,7 +3,7 @@
   gather_facts: no
   tasks:
     - name: Install bunyan alias
-      tags: [ "tool", "bunyan" ]
+      tags: [ "platform", "tool", "bunyan" ]
       lineinfile:
         name: "/root/.bashrc"
         regexp: "^alias bunyan="
