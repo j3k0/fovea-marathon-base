@@ -3,3 +3,6 @@
   become: true
   roles:
     - achaussier.ntp
+  tasks:
+    - name:  Set timezone to UTC
+      shell: timedatectl set-timezone Etc/UTC
