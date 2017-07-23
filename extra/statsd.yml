@@ -1,0 +1,33 @@
+---
+- hosts: sidekick
+  gather_facts: no
+
+  vars:
+    app_name: platform/statsd
+
+  tasks:
+  - name: Create storage
+    file:
+      path: /usr/local/{{ cluster_name }}/{{ app_name }}/storage
+      state: directory
+      mode: 0755
+
+  - name: Create statsd/
+    file: path=statsd state=directory mode=0755
+
+  - name: Install dockercompose-file
+    template:
+      src: statsd/docker-compose.yml.j2
+      dest: statsd/docker-compose.yml
+      mode: 0440
+
+  - name: Check if statsd is running
+    command: docker ps
+    changed_when: False
+    register: statsd_docker_ps
+
+  - name: Start statsd
+    command: docker-compose up -d --no-recreate
+    args:
+      chdir: statsd
+    when: not 'statsd_statsd_1' in statsd_docker_ps.stdout
