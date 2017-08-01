@@ -6,9 +6,16 @@
     app_name: platform/statsd
 
   tasks:
-  - name: Create storage
+
+  - name: Create statsd storage
     file:
       path: /usr/local/{{ cluster_name }}/{{ app_name }}/storage
+      state: directory
+      mode: 0755
+
+  - name: Create grafana storage
+    file:
+      path: /usr/local/{{ cluster_name }}/plaform/grafana
       state: directory
       mode: 0755
 

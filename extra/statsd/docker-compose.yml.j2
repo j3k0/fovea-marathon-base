@@ -12,6 +12,15 @@ statsd:
     - /usr/local/{{ cluster_name }}/platform/statsd/storage:/opt/graphite/storage
   restart: always
 
+grafana:
+  image: grafana/grafana
+  net: host
+  volumes:
+   - /usr/local/{{ cluster_name }}/platform/grafana:/var/lib/grafana
+  environment:
+   - "GF_SERVER_ROOT_URL={{ grafana_public_url }}"
+   - "GF_SECURITY_ADMIN_PASSWORD={{ grafana_admin_password }}"
+
 {% for host in groups['mesos-masters'] %}
 
 mesosmaster{{ host }}:
