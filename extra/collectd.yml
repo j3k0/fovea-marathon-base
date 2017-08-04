@@ -1,0 +1,56 @@
+---
+- hosts: mesos, sidekick, loadbalancer
+  tasks:
+
+  - name: Create collectd storage
+    file:
+      path: /etc/collectd
+      state: directory
+      mode: 0755
+
+  - name: Install collectd.conf
+    template:
+      src: collectd.conf
+      dest: /etc/collectd/collectd.conf
+      mode: 0444
+
+  - name: Install collectd-docker.sh
+    tags: [ 'templates' ]
+    template:
+      src: collectd-docker.sh
+      dest: /etc/collectd/collectd-docker.sh
+      mode: 0755
+
+  - name: Create user collector
+    user:
+      name: collector
+      group: docker
+      comment: "Stats Collector"
+      append: true
+
+  - name: App apt key
+    tags: [ update ]
+    apt_key:
+      id: 3994D24FB8543576
+      keyserver: keyserver.ubuntu.com
+      state: present
+
+  - name: Add apt repo
+    tags: [ update ]
+    apt_repository:
+      state: present
+      repo: deb http://pkg.ci.collectd.org/deb xenial collectd-5.7
+
+  - name: Ensure requirements are installed.
+    apt: name={{ item }} state=installed update_cache=yes
+    with_items:
+      - jq
+      - collectd
+      - collectd-utils
+    # jq is used by collectd-docker.sh to parse docker config files
+
+  - name: Enable collectd on boot
+    service:
+      name: collectd
+      enabled: true
+      state: restarted
