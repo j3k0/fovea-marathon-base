@@ -1,5 +1,5 @@
 statsd:
-  image: "hopsoft/graphite-statsd"
+  image: "graphiteapp/graphite-statsd:1.0.2-1"
   ports:
     - {{ tun0 }}:2080:80
     - {{ tun0 }}:2003:2003
@@ -10,6 +10,7 @@ statsd:
     - {{ tun0 }}:8126:8126
   volumes:
     - /usr/local/{{ cluster_name }}/platform/statsd/storage:/opt/graphite/storage
+    - /usr/local/{{ cluster_name }}/platform/statsd/config.js:/opt/statsd/config.js
   restart: always
 
 grafana:

@@ -22,7 +22,15 @@
   - name: Create statsd/
     file: path=statsd state=directory mode=0755
 
+  - name: Install statsd config.js
+    tags: [ templates ]
+    template:
+      src: statsd/config.js
+      dest: /usr/local/{{ cluster_name }}/{{ app_name }}/config.js
+      mode: 0440
+
   - name: Install dockercompose-file
+    tags: [ templates ]
     template:
       src: statsd/docker-compose.yml.j2
       dest: statsd/docker-compose.yml
