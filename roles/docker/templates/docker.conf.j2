@@ -10,6 +10,8 @@ ExecStart=/usr/bin/dockerd \
 {% endfor %}
         --dns 8.8.8.8 \
         --dns 8.8.4.4 \
+        --log-opt max-size=50m \
+        --log-opt max-file=5 \
         --ip {{ tun0 }} \
         --bip={{ docker_bip }}/16 \
         $OPTIONS \

@@ -29,11 +29,11 @@
   when: docker_info is defined and not docker_info.rc == 0
 
 - name: Make sure docker binds to the VPN on ubuntu-trusty
+  tags: [ docker_config ]
   lineinfile:
     dest: /etc/default/docker
     regexp: ^DOCKER_OPTS
-    line: 'DOCKER_OPTS="{% for dns in groups["mesos-dns"] %} --dns {{ hostvars[dns].tun0 }} {% endfor %} --dns 8.8.8.8 --dns 8.8.4.4 --ip {{ tun0 }} --bip={{ docker_bip }}/16"'
-  when: ubuntu_version == "ubuntu-trusty"
+    line: 'DOCKER_OPTS="{% for dns in groups["mesos-dns"] %} --dns {{ hostvars[dns].tun0 }} {% endfor %} --dns 8.8.8.8 --dns 8.8.4.4 --ip {{ tun0 }} --bip={{ docker_bip }}/16 --log-opt max-size=50m --log-opt max-file=5"'
 
 - block:
   - name: Make sure docker binds to the VPN on ubuntu-xenial 1/2
