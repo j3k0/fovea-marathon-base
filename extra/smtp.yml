@@ -7,7 +7,7 @@
   tasks:
     - name: Create mail queue storage
       file:
-        path: "/usr/local/{{ cluster_name }}/{{ app_name }}/mailqueue"
+        path: "/usr/local/{{ cluster_name }}/{{ app_name }}/spool"
         state: directory
         mode: 0755
 
@@ -17,6 +17,7 @@
   vars:
     app_name: platform/smtp
     app_port: 25
+    app_host: "{{ groups['mesos-slaves'][0] }}"
 
   roles:
   - role: topface.marathon_app
@@ -28,33 +29,48 @@
     marathon_wait_for_deployment: False
     marathon_app:
       id: /{{ app_name }}
-      cmd: >
-        hectane
-        -disable-ssl-verification
-        -smtp-addr tun0:25
-        -bind tun0:8025
-        -directory /mailqueue
+      # cmd: >
+      #   hectane
+      #   -disable-ssl-verification
+      #   -smtp-addr tun0:25
+      #   -bind tun0:8025
+      #   -directory /mailqueue
       container:
         type: DOCKER
         docker:
-          image: hectane/hectane:latest
+          # image: hectane/hectane:latest
+          image: jeko/smtp
+          forcePullImage: true
           network: HOST
         volumes:
-          - containerPath: /mailqueue
-            hostPath: "/usr/local/{{ cluster_name }}/{{ app_name }}/mailqueue"
+          - containerPath: /var/spool/exim4
+            hostPath: "/usr/local/{{ cluster_name }}/{{ app_name }}/spool"
             mode: RW
       instances: 1
       cpus: 0.1
-      mem: 128
+      env:
+        BIND_IP: "{{ hostvars[app_host].tun0 }}"
+        BIND_IP6: "::1"
+        DISABLE_IPV6: "true"
+        PORT: "25"
+        RELAY_NETWORKS: ":{{ hostvars[app_host].tun0 }}/24"
+        
+      mem: 256
       ports:
         - "{{ app_port }}"
       healthChecks:
-        - protocol: HTTP
-          path: "/v1/status"
-          port: "8025"
-          gracePeriodSeconds: 15
+        # - protocol: HTTP
+        #   path: "/v1/status"
+        #   port: "8025"
+        #   gracePeriodSeconds: 15
+        #   maxConsecutiveFailures: 3
+        #   intervalSeconds: 5
+        #   timeoutSeconds: 5
+        - protocol: TCP
+          port: "25"
+          gracePeriodSeconds: 60
           maxConsecutiveFailures: 3
-          intervalSeconds: 5
-          timeoutSeconds: 5
+          intervalSeconds: 60
+          timeoutSeconds: 10
       constraints:
-        - [ "hostname", "UNIQUE" ]
+        - [ "hostname", "CLUSTER", "{{ app_host }}" ]
