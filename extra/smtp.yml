@@ -54,6 +54,7 @@
         DISABLE_IPV6: "true"
         PORT: "25"
         RELAY_NETWORKS: ":{{ hostvars[app_host].tun0 }}/24"
+        MAILNAME: "{{ hostvars[app_host].rdns }}"
         
       mem: 256
       ports:
